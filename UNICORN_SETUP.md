@@ -10,6 +10,9 @@ Useful links:
 2. MLE-bench [repo](https://github.com/openai/mle-bench)
 
 ---
+## 0. Initial Setup
+- See [README](./README.md) for instructions on some initial setup for aira-dojo.
+- It will be good to also follow the steps in [`src/dojo/tasks/mlebench/README.md`](./src/dojo/tasks/mlebench/README.md) to install mle-bench and run your first task. You're gonna have to install git lfs with conda (``conda install -c conda-forge git-lfs``)
 
 ## 1. Cluster prerequisites
 
