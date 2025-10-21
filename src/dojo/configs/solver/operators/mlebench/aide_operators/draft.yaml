@@ -1,5 +1,5 @@
 defaults:
-  - /solver/client@draft.llm.client: litellm_4o
+  - /solver/client@draft.llm.client: gdm
 
 draft:
   _target_: dojo.config_dataclasses.operators.base.OperatorConfig

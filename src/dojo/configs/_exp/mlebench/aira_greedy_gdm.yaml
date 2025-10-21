@@ -2,14 +2,15 @@
 defaults:
   - override /interpreter: jupyter
   - override /solver: mlebench/greedy
-  - override /task: mlebench/aerial-cactus-identification
+  - override /benchmark: mlebench/lite
   - override /solver/client@solver.operators.analyze.llm.client: gdm
   - override /solver/client@solver.operators.debug.llm.client: gdm
   - override /solver/client@solver.operators.draft.llm.client: gdm
   - override /solver/client@solver.operators.improve.llm.client: gdm
 
-metadata:
-  git_issue_id: example # Ideally, this should be a number fetched from github issue when running an actual experiment.
 
-solver:
-  step_limit: 5
+metadata:
+  git_issue_id: AIRA_GREEDY_o3
+
+vars:
+  metadata.seed: [1,2,3,4,5,6,7,8,9,10] # 10 seeds for each experiment

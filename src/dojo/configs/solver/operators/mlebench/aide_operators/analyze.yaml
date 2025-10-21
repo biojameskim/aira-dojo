@@ -1,5 +1,5 @@
 defaults:
-  - /solver/client@analyze.llm.client: litellm_4o
+  - /solver/client@analyze.llm.client: gdm
 
 analyze:
   _target_: dojo.config_dataclasses.operators.base.OperatorConfig

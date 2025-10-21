@@ -1,5 +1,5 @@
 defaults:
-  - /solver/client@crossover.llm.client: litellm_4o
+  - /solver/client@crossover.llm.client: gdm
 
 crossover:
   _target_: dojo.config_dataclasses.operators.base.OperatorConfig
