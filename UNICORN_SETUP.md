@@ -5,6 +5,10 @@ This guide documents every change I needed to make to get
 (`unicorn-login-01`, `jjs533-compute-XX`).  It consolidates all of the tweaks
 I made while debugging, so you can reproduce a working setup from scratch.
 
+Useful links:
+1. Akanksha's [unicorn fork of the aira-dojo repo](https://github.com/akanksha-sarkar/aira-dojo/tree/unicorn)
+2. MLE-bench [repo](https://github.com/openai/mle-bench)
+
 ---
 
 ## 1. Cluster prerequisites
