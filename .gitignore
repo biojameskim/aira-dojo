@@ -163,7 +163,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.env_default
 
 # Spyder project settings
 .spyderproject
