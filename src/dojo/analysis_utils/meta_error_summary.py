@@ -104,6 +104,9 @@ def gather_submitit_data(logs_folder, job_ids):
     slurm_log_path = Path(logs_folder).parent.parent / "slurm_logs"
 
     for job_id in job_ids:
+        if not job_id:
+            continue
+
         err_files = list(slurm_log_path.glob(f"**/*{job_id}*.err"))
 
         if len(err_files) == 1:

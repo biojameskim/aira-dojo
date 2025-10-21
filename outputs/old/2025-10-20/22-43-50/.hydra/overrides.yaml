@@ -1,0 +1,4 @@
+- +_exp=run_example
+- solver=mlebench/mcts
+- task.name=random-acts-of-pizza
+- logger.use_wandb=False

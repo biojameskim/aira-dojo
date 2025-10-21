@@ -17,10 +17,12 @@ apptainer instance list -a -j >&2
 
 set -e
 
+ORIGINAL_ARGS=("$@")
+
 if [[ -z "$TMP_BASE_DIR" ]]; then
     TMP_BASE_DIR="/scratch/slurm_tmpdir/$SLURM_JOBID/"
 fi
-mkdir -p $TMP_BASE_DIR
+mkdir -p "$TMP_BASE_DIR"
 
 # for some crazy reason, slurm doesn't set/enforce max memory size
 # and doesn't kill the processes exceeding it
@@ -70,11 +72,12 @@ trap 'cleanup EXIT'    EXIT
 
 
 echo "Creating overlay" >&2
-if [[ "$IMAGE_OVERLAY" == "1" ]]; then
-OVERLAY_PATH="$TMP_DIR/overlay.sparse.img"
-apptainer overlay create --fakeroot --sparse --size 1048576 "$OVERLAY_PATH"
-else
-    OVERLAY_PATH="$TMP_DIR"
+OVERLAY_PATH=""
+if [[ "${IMAGE_OVERLAY:-1}" == "1" && "${USE_FAKEROOT:-1}" == "1" ]]; then
+    OVERLAY_PATH="$TMP_DIR/overlay.sparse.img"
+    apptainer overlay create --fakeroot --sparse --size 1048576 "$OVERLAY_PATH"
+elif [[ "${IMAGE_OVERLAY:-1}" == "1" && "${USE_FAKEROOT:-1}" != "1" ]]; then
+    echo "IMAGE_OVERLAY requested but USE_FAKEROOT disabled; skipping overlay creation" >&2
 fi
 
 # set SUPERIMAGE_VERSION to default if not set
@@ -100,12 +103,16 @@ cache_to_tmp() {
     TASKNAME=$(basename $(realpath "$ORIG/../..")) # Get the task name
     echo "TASKNAME: $TASKNAME" >&2
 
-    NEW="$TMP_BASE_DIR/${ORIG}"              # Mirror path under /tmp
+    # Mirror original path structure under TMP_BASE_DIR while stripping leading slash
+    NEW="$TMP_BASE_DIR/${ORIG#/}"              # Mirror path under tmp base
     DONE_MARKER="$NEW/.completed"
 
     
     # Rewrite every occurrence in APPTAINER_BIND
     APPTAINER_BIND="${APPTAINER_BIND//$ORIG/$NEW}"
+    # Also expose the dataset under /workspace/data and /data for relative paths
+    APPTAINER_BIND="${APPTAINER_BIND},${NEW}:/workspace/data:ro"
+    APPTAINER_BIND="${APPTAINER_BIND},${NEW}:/data:ro"
     export APPTAINER_BIND
     echo "Rewrote APPTAINER_BIND to $APPTAINER_BIND" >&2
 
@@ -119,9 +126,10 @@ cache_to_tmp() {
 
         if [ -f "$TARBALL_PATH" ]; then
             echo "Extracting $TARBALL_PATH to $NEW" >&2
-            mkdir -p "$NEW"
+            parent_dir="$(dirname "$NEW")"
+            mkdir -p "$parent_dir"
             # Extract the tarball to the new location
-            tar -xf "$TARBALL_PATH" -C "$NEW/.."
+            tar -xf "$TARBALL_PATH" -C "$parent_dir"
             touch "$DONE_MARKER"
         else
             echo "Tarball not found, copying directory" >&2
@@ -140,41 +148,101 @@ cache_to_tmp() {
 cache_to_tmp
 
 
-if [ ! -f $TMP_BASE_DIR/superimage.root.$SUPERIMAGE_VERSION.sif ]; then
+if [ ! -f "$TMP_BASE_DIR/superimage.root.$SUPERIMAGE_VERSION.sif" ]; then
     echo "Copying image.sif from superimage to /tmp/progress.sif" >&2
-    cp ${SUPERIMAGE_DIR}superimage.root.$SUPERIMAGE_VERSION.sif $TMP_BASE_DIR/progress.superimage.root.$SUPERIMAGE_VERSION.sif
+    cp "${SUPERIMAGE_DIR}superimage.root.$SUPERIMAGE_VERSION.sif" "$TMP_BASE_DIR/progress.superimage.root.$SUPERIMAGE_VERSION.sif"
     # to make sure it's not half-copied
-    mv $TMP_BASE_DIR/progress.superimage.root.$SUPERIMAGE_VERSION.sif $TMP_BASE_DIR/superimage.root.$SUPERIMAGE_VERSION.sif
+    mv "$TMP_BASE_DIR/progress.superimage.root.$SUPERIMAGE_VERSION.sif" "$TMP_BASE_DIR/superimage.root.$SUPERIMAGE_VERSION.sif"
 fi
 
+FAKEROOT_FLAG="--fakeroot"
+if [ "${USE_FAKEROOT:-1}" != "1" ]; then
+    echo "Skipping --fakeroot for Apptainer instance run" >&2
+    FAKEROOT_FLAG=""
+fi
 
-apptainer instance run \
-    --containall \
-    --cleanenv \
-    --no-home \
-    $BASE_OVERLAYS \
-    --overlay "$OVERLAY_PATH" \
-    --env SSH_PUBLIC_KEY="$SSH_PUBLIC_KEY" \
-    --env KG_IP="$KG_IP" \
-    --env PYTHONUNBUFFERED=1 \
-    --env WANDB_DISABLED=1 \
-    --env TQDM_DISABLE=1 \
-    --env HTTP_PROXY=$RAD_HTTP_PROXY \
-    --env HTTPS_PROXY=$RAD_HTTPS_PROXY \
-    --env NO_PROXY=$RAD_NO_PROXY \
-    --env HF_TOKEN=$RAD_HF_TOKEN \
-    --env HF_HUB_VERBOSITY=$RAD_HF_HUB_VERBOSITY \
-    --env HF_HUB_OFFLINE=$RAD_HF_HUB_OFFLINE \
-    --env HF_HUB_DISABLE_PROGRESS_BARS=1 \
-    --env HF_HUB_DISABLE_TELEMETRY=1 \
-    --env CUDA_LAUNCH_BLOCKING=1 \
-    --env NLTK_DATA=$RAD_NLTK_DATA \
-    --env TF_CPP_MIN_LOG_LEVEL=3 \
-    --nv \
-    --fakeroot \
-    $TMP_BASE_DIR/superimage.root.$SUPERIMAGE_VERSION.sif \
-    "$INSTANCE_NAME" \
-    $@
+APPTAINER_CMD=(
+    apptainer instance run
+    --containall
+    --cleanenv
+    --no-home
+)
+
+if [ -n "$BASE_OVERLAYS" ]; then
+    APPTAINER_CMD+=($BASE_OVERLAYS)
+fi
+
+APPTAINER_CMD+=(
+    --env SSH_PUBLIC_KEY="$SSH_PUBLIC_KEY"
+    --env KG_IP="$KG_IP"
+    --env PYTHONUNBUFFERED=1
+    --env HOME=/workspace
+    --env WANDB_DISABLED=1
+    --env TQDM_DISABLE=1
+    --env HTTP_PROXY=$RAD_HTTP_PROXY
+    --env HTTPS_PROXY=$RAD_HTTPS_PROXY
+    --env NO_PROXY=$RAD_NO_PROXY
+    --env HF_TOKEN=$RAD_HF_TOKEN
+    --env HF_HUB_VERBOSITY=$RAD_HF_HUB_VERBOSITY
+    --env HF_HUB_OFFLINE=$RAD_HF_HUB_OFFLINE
+    --env HF_HUB_DISABLE_PROGRESS_BARS=1
+    --env HF_HUB_DISABLE_TELEMETRY=1
+    --env CUDA_LAUNCH_BLOCKING=1
+    --env NLTK_DATA=$RAD_NLTK_DATA
+    --env TF_CPP_MIN_LOG_LEVEL=3
+    --nv
+)
+
+if [ -n "$OVERLAY_PATH" ]; then
+    APPTAINER_CMD+=(--overlay "$OVERLAY_PATH")
+else
+    # without overlay, bind scratch workspace for read-write access
+    if [ -n "$APPTAINER_BIND" ]; then
+        APPTAINER_BIND="$APPTAINER_BIND,$TMP_DIR:/workspace"
+    else
+        APPTAINER_BIND="$TMP_DIR:/workspace"
+    fi
+fi
+
+# ensure writable Jupyter runtime/cache directories are available
+if [ -n "$RAD_RUNTIME_DIR" ]; then
+    mkdir -p "$RAD_RUNTIME_DIR"
+else
+    RAD_RUNTIME_DIR="$TMP_DIR/runtime"
+    mkdir -p "$RAD_RUNTIME_DIR"
+fi
+
+if [ -n "$RAD_DATA_DIR" ]; then
+    mkdir -p "$RAD_DATA_DIR"
+else
+    RAD_DATA_DIR="$TMP_DIR/share"
+    mkdir -p "$RAD_DATA_DIR"
+fi
+
+APPTAINER_BIND="$APPTAINER_BIND,$RAD_RUNTIME_DIR:/root/.local/share/jupyter/runtime"
+APPTAINER_BIND="$APPTAINER_BIND,$RAD_DATA_DIR:/root/.local/share/jupyter"
+export APPTAINER_BIND
+
+if [ -n "$FAKEROOT_FLAG" ]; then
+    APPTAINER_CMD+=("$FAKEROOT_FLAG")
+fi
+
+APPTAINER_CMD+=(
+    "$TMP_BASE_DIR/superimage.root.$SUPERIMAGE_VERSION.sif"
+    "$INSTANCE_NAME"
+)
+
+CMD="cd /workspace"
+if [ "${#ORIGINAL_ARGS[@]}" -gt 0 ]; then
+    CMD+=" &&"
+    for arg in "${ORIGINAL_ARGS[@]}"; do
+        CMD+=" $(printf '%q' "$arg")"
+    done
+fi
+
+APPTAINER_CMD+=("bash" "-lc" "$CMD")
+
+"${APPTAINER_CMD[@]}"
 
 
 echo "After starting"

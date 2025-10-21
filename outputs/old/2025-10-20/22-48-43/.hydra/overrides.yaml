@@ -1,0 +1,4 @@
+- +_exp=run_example
+- solver=mlebench/mcts
+- task.name=text-normalization-challenge-english-language
+- logger.use_wandb=False
