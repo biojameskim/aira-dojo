@@ -1,4 +1,5 @@
-# `aira-dojo`: AI Research Agent DOJO 
+# [UNICORN version] --> Check out [Unicorn Docs](./UNICORN_SETUP.md)
+## `aira-dojo`: AI Research Agent DOJO 
 <p align="center">
   <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.en"><img src="https://img.shields.io/badge/license-CC--BY--NC%204.0-lightgrey"/></a>
   <a href="https://arxiv.org/abs/2507.02554">
