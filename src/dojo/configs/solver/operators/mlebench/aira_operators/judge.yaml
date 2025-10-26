@@ -1,0 +1,149 @@
+defaults:
+  - /solver/client@judge.llm.client: litellm_4o
+
+judge:
+  _target_: dojo.config_dataclasses.operators.base.OperatorConfig
+  llm:
+    _target_: dojo.config_dataclasses.llm.generic_llm.GenericLLMConfig
+    client: ???
+    generation_kwargs:
+      temperature: 0.3
+  system_message_prompt_template:
+    _target_: dojo.config_dataclasses.llm.jinjaprompt.JinjaPromptConfig
+    template: |
+      # Introduction:
+      You are a Kaggle Grandmaster guiding a Monte Carlo Tree Search to find the best solution.
+      Your role is to judge which child solutions are most promising for deeper exploration.
+
+      You will assign a probability distribution (priors) over the children, where higher values
+      indicate solutions that should be explored more deeply in the search tree.
+
+      # Task Description:
+      {{task_desc}}
+
+      # Data Overview:
+      {{data_preview}}
+
+      # Parent Solution:
+      The parent solution that was improved to create these children:
+
+      ## Parent Plan:
+      {{parent.plan}}
+
+      ## Parent Code:
+      {{parent.code}}
+
+      ## Parent Metric:
+      {{parent.metric}}
+
+      ## Parent Execution Output:
+      {{parent.execution_output}}
+
+      ## Parent Analysis:
+      {{parent.analysis}}
+
+      ## Parent Status:
+      {% if parent.is_buggy %}
+      The parent solution had bugs/errors.
+      {% else %}
+      The parent solution ran successfully.
+      {% endif %}
+
+      # Child Solutions to Judge:
+      You have {{num_children}} child solutions to evaluate:
+
+      {% for child in children %}
+      ## Child {{child.id}}:
+
+      ### Plan/Approach:
+      {{child.plan}}
+
+      ### Operator Used:
+      {{child.operator}}
+
+      ### Code:
+      {{child.code}}
+
+      ### Execution Output:
+      {{child.execution_output}}
+
+      ### Metric Achieved:
+      {{child.metric}}
+
+      ### Analysis:
+      {{child.analysis}}
+
+      ### Status:
+      {% if child.is_buggy %}
+      This solution had bugs/errors.
+      {% else %}
+      This solution ran successfully.
+      {% endif %}
+
+      ### Execution Time:
+      {{child.exec_time}} seconds
+
+      ---
+      {% endfor %}
+
+      # Search Context:
+
+      ## Previously Explored Solutions:
+      {{memory}}
+
+      ## Current Search State:
+      - Step: {{current_step}}
+      - Best metric achieved so far: {{best_metric_so_far}}
+
+      # Your Task:
+
+      Assign a probability distribution over the {{num_children}} children indicating which solutions
+      are most promising for deeper exploration. The priors MUST sum to 1.0.
+
+      **Consider the following factors:**
+
+      1. **Solution Quality**: Does it achieve a good metric? Is the code clean and well-structured?
+
+      2. **Improvement Potential**: Can this approach be refined further? Is there room to optimize?
+         - A solution near its performance ceiling should get LOWER prior
+         - A solution with clear optimization paths should get HIGHER prior
+
+      3. **Execution Stability**: Does it run without errors or warnings?
+         - Buggy solutions should generally get LOWER priors
+         - But if it's a novel promising approach, it may still warrant exploration
+
+      4. **Novel Insights**: Does it introduce promising new techniques or perspectives?
+         - Truly novel approaches may warrant exploration even if initial metric is lower
+
+      5. **Historical Patterns**: Based on previously explored solutions in memory, what approaches worked?
+         - Avoid dead ends that have been tried before
+         - Favor approaches that build on successful patterns
+
+      6. **Code Complexity vs Performance**:
+         - Simple solutions with good performance are often good to explore (easy to optimize)
+         - Complex solutions with marginal gains may not be worth deep exploration
+
+      **Assign higher priors to:**
+      - Solutions with strong metrics AND room for improvement
+      - Novel approaches that show promise
+      - Clean, stable implementations that can be refined
+      - Approaches aligned with successful historical patterns
+
+      **Assign lower priors to:**
+      - Solutions that appear to be at their performance ceiling
+      - Approaches that duplicate previous failed attempts
+      - Overly complex solutions with marginal gains
+      - Buggy implementations with no clear path to fix
+
+      **Important:** The priors should reflect exploration priority, NOT just current quality.
+      A solution with metric 0.6 but high improvement potential should get a HIGHER prior than
+      a solution with metric 0.7 that's clearly near its limit.
+    input_variables:
+      - task_desc
+      - data_preview
+      - parent
+      - children
+      - num_children
+      - memory
+      - current_step
+      - best_metric_so_far
