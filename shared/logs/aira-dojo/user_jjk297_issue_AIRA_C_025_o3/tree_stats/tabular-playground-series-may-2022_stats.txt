@@ -1,0 +1,304 @@
+Metric: num_buggy_nodes
+  Min: 34.000
+  Q1 (25th percentile): 39.500
+  Mean: 61.667
+  Median: 45.000
+  Q3 (75th percentile): 75.500
+  Max: 106.000
+----------------------------------------
+Metric: total_num_all_tokens
+  Min: 696224.000
+  Q1 (25th percentile): 758576.000
+  Mean: 1056884.000
+  Median: 820928.000
+  Q3 (75th percentile): 1237214.000
+  Max: 1653500.000
+----------------------------------------
+Metric: max_exec_time
+  Min: 6616.008
+  Q1 (25th percentile): 10509.903
+  Mean: 11809.314
+  Median: 14403.798
+  Q3 (75th percentile): 14405.968
+  Max: 14408.137
+----------------------------------------
+Metric: num_intermediate_nodes
+  Min: 34.000
+  Q1 (25th percentile): 38.500
+  Mean: 59.667
+  Median: 43.000
+  Q3 (75th percentile): 72.500
+  Max: 102.000
+----------------------------------------
+Metric: max_test_score
+  Min: 0.932
+  Q1 (25th percentile): 0.947
+  Mean: 0.956
+  Median: 0.962
+  Q3 (75th percentile): 0.968
+  Max: 0.973
+----------------------------------------
+Metric: total_num_completion_tokens
+  Min: 72350.000
+  Q1 (25th percentile): 76287.500
+  Mean: 113196.667
+  Median: 80225.000
+  Q3 (75th percentile): 133620.000
+  Max: 187015.000
+----------------------------------------
+Metric: draft_proportion
+  Min: 0.082
+  Q1 (25th percentile): 0.088
+  Mean: 0.093
+  Median: 0.094
+  Q3 (75th percentile): 0.099
+  Max: 0.104
+----------------------------------------
+Metric: total_exec_time
+  Min: 21547.461
+  Q1 (25th percentile): 23478.182
+  Mean: 29052.552
+  Median: 25408.902
+  Q3 (75th percentile): 32805.097
+  Max: 40201.291
+----------------------------------------
+Metric: improve_frequency
+  Min: 5.000
+  Q1 (25th percentile): 7.500
+  Mean: 8.333
+  Median: 10.000
+  Q3 (75th percentile): 10.000
+  Max: 10.000
+----------------------------------------
+Metric: debug_proportion
+  Min: 0.667
+  Q1 (25th percentile): 0.730
+  Mean: 0.760
+  Median: 0.792
+  Q3 (75th percentile): 0.806
+  Max: 0.820
+----------------------------------------
+Metric: max_num_children
+  Min: 5.000
+  Q1 (25th percentile): 5.000
+  Mean: 5.000
+  Median: 5.000
+  Q3 (75th percentile): 5.000
+  Max: 5.000
+----------------------------------------
+Metric: avg_num_children
+  Min: 0.979
+  Q1 (25th percentile): 0.980
+  Mean: 0.981
+  Median: 0.981
+  Q3 (75th percentile): 0.982
+  Max: 0.984
+----------------------------------------
+Metric: num_root_nodes
+  Min: 1.000
+  Q1 (25th percentile): 1.000
+  Mean: 1.333
+  Median: 1.000
+  Q3 (75th percentile): 1.500
+  Max: 2.000
+----------------------------------------
+Metric: debug_frequency
+  Min: 32.000
+  Q1 (25th percentile): 37.000
+  Mean: 58.000
+  Median: 42.000
+  Q3 (75th percentile): 71.000
+  Max: 100.000
+----------------------------------------
+Metric: min_test_score
+  Min: 0.657
+  Q1 (25th percentile): 0.717
+  Mean: 0.780
+  Median: 0.776
+  Q3 (75th percentile): 0.842
+  Max: 0.908
+----------------------------------------
+Metric: analysis_proportion
+  Min: 0.979
+  Q1 (25th percentile): 0.980
+  Mean: 0.981
+  Median: 0.981
+  Q3 (75th percentile): 0.982
+  Max: 0.984
+----------------------------------------
+Metric: num_total_nodes
+  Min: 48.000
+  Q1 (25th percentile): 50.500
+  Mean: 74.333
+  Median: 53.000
+  Q3 (75th percentile): 87.500
+  Max: 122.000
+----------------------------------------
+Metric: buggy_nodes_proportion
+  Min: 0.708
+  Q1 (25th percentile): 0.779
+  Mean: 0.809
+  Median: 0.849
+  Q3 (75th percentile): 0.859
+  Max: 0.869
+----------------------------------------
+Metric: num_good_nodes
+  Min: 8.000
+  Q1 (25th percentile): 11.000
+  Mean: 12.667
+  Median: 14.000
+  Q3 (75th percentile): 15.000
+  Max: 16.000
+----------------------------------------
+Metric: nodes_without_analysis
+  Min: 1.000
+  Q1 (25th percentile): 1.000
+  Mean: 1.333
+  Median: 1.000
+  Q3 (75th percentile): 1.500
+  Max: 2.000
+----------------------------------------
+Metric: avg_num_all_tokens
+  Min: 6889.583
+  Q1 (25th percentile): 7148.111
+  Mean: 7396.587
+  Median: 7406.638
+  Q3 (75th percentile): 7650.088
+  Max: 7893.538
+----------------------------------------
+Metric: avg_num_prompt_tokens
+  Min: 6110.354
+  Q1 (25th percentile): 6373.656
+  Mean: 6623.152
+  Median: 6636.957
+  Q3 (75th percentile): 6879.551
+  Max: 7122.144
+----------------------------------------
+Metric: max_depth
+  Min: 22.000
+  Q1 (25th percentile): 22.500
+  Mean: 24.000
+  Median: 23.000
+  Q3 (75th percentile): 25.000
+  Max: 27.000
+----------------------------------------
+Metric: average_val_metric
+  Min: 0.889
+  Q1 (25th percentile): 0.902
+  Mean: 0.918
+  Median: 0.916
+  Q3 (75th percentile): 0.933
+  Max: 0.950
+----------------------------------------
+Metric: avg_latency
+  Min: 4.571
+  Q1 (25th percentile): 4.631
+  Mean: 4.679
+  Median: 4.691
+  Q3 (75th percentile): 4.733
+  Max: 4.775
+----------------------------------------
+Metric: median_exec_time
+  Min: 8.159
+  Q1 (25th percentile): 16.257
+  Mean: 71.100
+  Median: 24.355
+  Q3 (75th percentile): 102.570
+  Max: 180.786
+----------------------------------------
+Metric: analysis_frequency
+  Min: 47.000
+  Q1 (25th percentile): 49.500
+  Mean: 73.000
+  Median: 52.000
+  Q3 (75th percentile): 86.000
+  Max: 120.000
+----------------------------------------
+Metric: min_exec_time
+  Min: 0.000
+  Q1 (25th percentile): 0.000
+  Mean: 0.000
+  Median: 0.000
+  Q3 (75th percentile): 0.000
+  Max: 0.000
+----------------------------------------
+Metric: improve_proportion
+  Min: 0.082
+  Q1 (25th percentile): 0.088
+  Mean: 0.128
+  Median: 0.094
+  Q3 (75th percentile): 0.151
+  Max: 0.208
+----------------------------------------
+Metric: avg_test_score
+  Min: 0.869
+  Q1 (25th percentile): 0.887
+  Mean: 0.909
+  Median: 0.906
+  Q3 (75th percentile): 0.929
+  Max: 0.951
+----------------------------------------
+Metric: avg_exec_time
+  Min: 208.270
+  Q1 (25th percentile): 307.413
+  Mean: 484.117
+  Median: 406.556
+  Q3 (75th percentile): 622.041
+  Max: 837.527
+----------------------------------------
+Metric: num_nodes_with_val_metrics
+  Min: 8.000
+  Q1 (25th percentile): 11.000
+  Mean: 12.667
+  Median: 14.000
+  Q3 (75th percentile): 15.000
+  Max: 16.000
+----------------------------------------
+Metric: avg_num_completion_tokens
+  Min: 769.681
+  Q1 (25th percentile): 770.538
+  Mean: 773.435
+  Median: 771.394
+  Q3 (75th percentile): 775.312
+  Max: 779.229
+----------------------------------------
+Metric: num_leaf_nodes
+  Min: 9.000
+  Q1 (25th percentile): 11.000
+  Mean: 13.333
+  Median: 13.000
+  Q3 (75th percentile): 15.500
+  Max: 18.000
+----------------------------------------
+Metric: total_num_prompt_tokens
+  Min: 623874.000
+  Q1 (25th percentile): 682288.500
+  Mean: 943687.333
+  Median: 740703.000
+  Q3 (75th percentile): 1103594.000
+  Max: 1466485.000
+----------------------------------------
+Metric: draft_frequency
+  Min: 5.000
+  Q1 (25th percentile): 5.000
+  Mean: 6.667
+  Median: 5.000
+  Q3 (75th percentile): 7.500
+  Max: 10.000
+----------------------------------------
+Metric: good_nodes_proportion
+  Min: 0.131
+  Q1 (25th percentile): 0.141
+  Mean: 0.191
+  Median: 0.151
+  Q3 (75th percentile): 0.221
+  Max: 0.292
+----------------------------------------
+Metric: total_latency
+  Min: 440.957
+  Q1 (25th percentile): 458.192
+  Mean: 687.495
+  Median: 475.427
+  Q3 (75th percentile): 810.764
+  Max: 1146.101
+----------------------------------------
