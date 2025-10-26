@@ -113,19 +113,41 @@ def _main(cfg: RunConfig):
     else:
         log.info("Evaluating the final solution...")
 
-        if (
-            hasattr(best_node, "metric")
-            and hasattr(best_node.metric, "info")
-            and "score" in best_node.metric.info
-            and best_node.metric.info is not None
-        ):
-            log.info("We have the evaluation score already computed...")
-            fitness = best_node.metric.info["score"]
-            log.info(f"Final fitness: {fitness}")
-        else:
-            raise ValueError("This should not be reached and happening.")
+        best_node_summary_path = Path(cfg.logger.output_dir) / "best_node_summary.txt"
 
-        logger.log(fitness, LogEvent.EVAL)
+        fitness = None
+        metric_obj = getattr(best_node, "metric", None)
+        metric_info = getattr(metric_obj, "info", None)
+
+        if isinstance(metric_info, dict) and "score" in metric_info:
+            log.info("We have the evaluation score already computed...")
+            fitness = metric_info["score"]
+        else:
+            fitness = getattr(metric_obj, "value", None)
+            if fitness is not None:
+                log.warning("Best node metric info missing 'score'; falling back to metric.value.")
+            else:
+                log.warning("Best node does not provide metric info or value; skipping fitness logging.")
+
+        if fitness is not None:
+            log.info(f"Final fitness: {fitness}")
+            logger.log(fitness, LogEvent.EVAL)
+
+        if best_node is not None:
+            metric_value = getattr(getattr(best_node, "metric", None), "value", None)
+            metric_info = getattr(getattr(best_node, "metric", None), "info", None)
+            summary_lines = [
+                f"Best node ID: {best_node.id}",
+                f"Step: {best_node.step}",
+                f"Metric value: {metric_value}",
+                f"Metric info: {metric_info}",
+                "",
+                "Code:",
+                "",
+                best_node.code.strip(),
+                "",
+            ]
+            best_node_summary_path.write_text("\n".join(summary_lines))
 
     log.info("Clean up...")
     task.close(state)

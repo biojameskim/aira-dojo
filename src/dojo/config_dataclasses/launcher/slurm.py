@@ -79,6 +79,13 @@ class SlurmConfig(LauncherConfig):
             "exclude_from_hash": True,
         },
     )
+    gres: str | None = field(
+        default=None,
+        metadata={
+            "help": "Generic resources string passed to Slurm (e.g. gpu:nvidia_rtx_6000_ada_generation:1)",
+            "exclude_from_hash": True,
+        },
+    )
     # requeue: bool = field(
     #     default=False,
     #     metadata={

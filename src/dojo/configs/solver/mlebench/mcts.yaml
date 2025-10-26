@@ -14,7 +14,7 @@ _target_: dojo.config_dataclasses.solver.mcts.MCTSSolverConfig
 # Whether to export search results after execution
 export_search_results: true
 
-step_limit: 10000
+step_limit: 2500
 num_children: 5
 uct_c: 0.25
 max_debug_depth: 20

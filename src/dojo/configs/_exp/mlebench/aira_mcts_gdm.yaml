@@ -2,6 +2,7 @@
 defaults:
   - override /interpreter: jupyter
   - override /solver: mlebench/mcts
+  - override /benchmark: mlebench/three_tasks
   - override /solver/client@solver.operators.analyze.llm.client: gdm
   - override /solver/client@solver.operators.debug.llm.client: gdm
   - override /solver/client@solver.operators.draft.llm.client: gdm
@@ -40,4 +41,5 @@ metadata:
   git_issue_id: AIRA_C_025_o3
 
 vars:
-  metadata.seed: [1,2,3,4,5,6,7,8,9,10]  # 10 seeds for each experiment
+  # metadata.seed: [1,2,3,4,5,6,7,8,9,10]  # 10 seeds for each experiment
+  metadata.seed: [1,2,3]  # 3 seeds for each experiment

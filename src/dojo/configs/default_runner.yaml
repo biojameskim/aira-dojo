@@ -1,4 +1,5 @@
 defaults:
+  - _self_
   - metadata: base_metadata
   - logger: base_logger
   - launcher: slurm

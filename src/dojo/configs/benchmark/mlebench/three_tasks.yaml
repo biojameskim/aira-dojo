@@ -1,0 +1,7 @@
+_target_: dojo.config_dataclasses.benchmark.BenchmarkConfig
+
+name: mlebench
+tasks:
+  - aptos2019-blindness-detection
+  - tabular-playground-series-may-2022
+  - mlsp-2013-birds

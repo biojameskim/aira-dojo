@@ -8,3 +8,5 @@ time: "36:00:00"
 mem: 200G
 debug: True
 array_parallelism: null
+partition: gpu
+gres: gpu:nvidia_rtx_6000_ada_generation:1
