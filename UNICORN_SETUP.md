@@ -147,7 +147,13 @@ python -m dojo.main_run \
     +_exp=mlebench/aira \
     task.name=random-acts-of-pizza \
     logger.use_wandb=False
+
+# Batch the standard three MLE-Bench tasks (seeds 1-3)
+python run_three_tasks_local.py \
+    --exp-config run_mlebench_aira_llm_mcts
 ```
+
+`run_three_tasks_local.py` is a thin wrapper that iterates over the three canonical MLE-Bench tasks (`aptos2019-blindness-detection`, `tabular-playground-series-may-2022`, `mlsp-2013-birds`) and seeds `[1, 2, 3]`, launching `python -m dojo.main_run ...` for each combination. Pass `--exp-config <name>` to swap experiments (defaults to `run_mlebench_aira_mcts_gdm`). The LLM as judge implementation is `run_mlebench_aira_llm_mcts`.
 
 ---
 
