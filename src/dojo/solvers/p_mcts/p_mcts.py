@@ -433,7 +433,7 @@ class MCTS(Solver):
         self,
         parent_node: MCTSNode,
         children: List[MCTSNode]
-    ) -> List[float]:
+    ) -> Tuple[List[float], Dict[str, Any]]:
         """
         Use judge operator to assign priors to children based on execution results.
 
@@ -442,10 +442,10 @@ class MCTS(Solver):
             children: List of executed children with metrics/outputs
 
         Returns:
-            List of prior probabilities (same length as children, sums to 1.0)
+            Tuple of (priors, metrics) where priors is a list of probabilities and metrics contains LLM trace data
         """
         if not children:
-            return []
+            return [], {}
 
         # Call judge operator with full context
         judgment_json, metrics = self.judge_fn(
@@ -457,7 +457,7 @@ class MCTS(Solver):
             data_preview=self.data_preview,
         )
 
-        # Store judge metrics (we'll add to first child for logging purposes)
+        # Log judge metrics to console
         self.logger.info(f"Judge Operator Called - Metrics: {metrics}")
 
         # Parse JSON response
@@ -466,19 +466,19 @@ class MCTS(Solver):
         # Validate structure
         if not isinstance(judgment, dict):
             self.logger.warning("Judge returned non-dict, using uniform priors")
-            return [1.0 / len(children)] * len(children)
+            return [1.0 / len(children)] * len(children), metrics
 
         priors = judgment.get("priors", [])
 
         # Validate priors array
         if not isinstance(priors, list) or len(priors) != len(children):
             self.logger.warning(f"Invalid priors length: {len(priors) if isinstance(priors, list) else 'not a list'} != {len(children)}, using uniform")
-            return [1.0 / len(children)] * len(children)
+            return [1.0 / len(children)] * len(children), metrics
 
         # Validate priors are valid probabilities
         if not all(isinstance(p, (float, int)) and 0 <= p <= 1 for p in priors):
             self.logger.warning("Invalid prior values, using uniform")
-            return [1.0 / len(children)] * len(children)
+            return [1.0 / len(children)] * len(children), metrics
 
         # Normalize to sum to 1.0 (in case LLM didn't normalize perfectly)
         prior_sum = sum(priors)
@@ -490,7 +490,7 @@ class MCTS(Solver):
         self.logger.info(f"Judge assigned priors: {priors}")
         self.logger.info(f"Judge reasoning: {judgment.get('reasoning', 'N/A')}")
 
-        return priors
+        return priors, metrics
 
     def _ensure_children_judged(self, node: MCTSNode):
         """
@@ -511,7 +511,11 @@ class MCTS(Solver):
 
         # Judge all children together
         children_list = list(node.children)
-        priors = self._judge_children(node, children_list)
+        priors, judge_metrics = self._judge_children(node, children_list)
+
+        # Store judge metrics in parent node for tracing
+        node.operators_used.append("judge")
+        node.operators_metrics.append(judge_metrics)
 
         # Assign priors to children
         for child, prior in zip(children_list, priors):
