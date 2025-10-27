@@ -148,12 +148,25 @@ python -m dojo.main_run \
     task.name=random-acts-of-pizza \
     logger.use_wandb=False
 
-# Batch the standard three MLE-Bench tasks (seeds 1-3)
+# Batch the standard three MLE-Bench tasks
 python run_three_tasks_local.py \
     --exp-config run_mlebench_aira_llm_mcts
 ```
+### Defaults
+- `run_three_tasks_local.py` is a thin wrapper that iterates over the three canonical MLE-Bench tasks (`aptos2019-blindness-detection`, `tabular-playground-series-may-2022`, `mlsp-2013-birds`) and seeds `[1, 2, 3]`, launching `python -m dojo.main_run ...` for each combination.
+- Pass `--exp-config <name>` to swap experiments (defaults to `run_mlebench_aira_mcts_gdm`). The LLM as judge implementation is `run_mlebench_aira_llm_mcts`.
 
-`run_three_tasks_local.py` is a thin wrapper that iterates over the three canonical MLE-Bench tasks (`aptos2019-blindness-detection`, `tabular-playground-series-may-2022`, `mlsp-2013-birds`) and seeds `[1, 2, 3]`, launching `python -m dojo.main_run ...` for each combination. Pass `--exp-config <name>` to swap experiments (defaults to `run_mlebench_aira_mcts_gdm`). The LLM as judge implementation is `run_mlebench_aira_llm_mcts`.
+You can also configure specific tasks/seeds like so:
+```
+python run_three_tasks_local.py \
+  --exp-config run_mlebench_aira_llm_mcts \
+  --tasks aptos2019-blindness-detection tabular-playground-series-may-2022 \
+  --seeds 1 2
+```
+
+Extra:
+- Edit `step_limit` in the associated `.yaml` file in [solver/mlebench](src/dojo/configs/solver/mlebench)
+- Edit `time_limit_secs` in the associated `.yaml` file in [solver/](src/dojo/configs/solver/)
 
 ---
 
