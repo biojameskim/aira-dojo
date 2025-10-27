@@ -18,13 +18,13 @@ import time
 from pathlib import Path
 
 # Tasks pulled from src/dojo/configs/benchmark/mlebench/three_tasks.yaml
-TASKS = [
+DEFAULT_TASKS = [
     "aptos2019-blindness-detection",
     "tabular-playground-series-may-2022",
     "mlsp-2013-birds",
 ]
 
-SEEDS = [1, 2, 3]
+DEFAULT_SEEDS = [1, 2, 3]
 # Edit step_limit in /share/j_sun/jjk297/repos/aira-dojo/src/dojo/configs/solver/mlebench/mcts.yaml
 # Edit time_limit_secs in /share/j_sun/jjk297/repos/aira-dojo/src/dojo/configs/solver/mcts.yaml
 
@@ -90,6 +90,22 @@ def _parse_args() -> argparse.Namespace:
         default="run_mlebench_aira_mcts_gdm",
         help="Hydra experiment config to launch (passed as +_exp=...).",
     )
+    parser.add_argument(
+        "--tasks",
+        nargs="+",
+        default=DEFAULT_TASKS,
+        help=(
+            "List of task names to run (defaults to the three canonical MLE-Bench tasks). "
+            "Example: --tasks aptos2019-blindness-detection tabular-playground-series-may-2022"
+        ),
+    )
+    parser.add_argument(
+        "--seeds",
+        nargs="+",
+        type=int,
+        default=DEFAULT_SEEDS,
+        help="List of integer seeds to iterate over (e.g., --seeds 1 3 5).",
+    )
     return parser.parse_args()
 
 
@@ -114,8 +130,8 @@ def main() -> None:
 
     summary: list[tuple[str, int, str, Path, str]] = []
 
-    for task in TASKS:
-        for seed in SEEDS:
+    for task in args.tasks:
+        for seed in args.seeds:
             # Refresh the set of known configs to capture runs created outside this script
             config_paths |= _list_config_paths(logs_base)
 
