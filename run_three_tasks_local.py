@@ -9,6 +9,7 @@ if you want to cover a different subset or number of seeds.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import subprocess
@@ -82,7 +83,18 @@ def _wait_for_run(base_dir: Path, known: set[Path], task: str, seed: int, timeou
     return None, None
 
 
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run three-task MCTS experiments locally.")
+    parser.add_argument(
+        "--exp-config",
+        default="run_mlebench_aira_mcts_gdm",
+        help="Hydra experiment config to launch (passed as +_exp=...).",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
+    args = _parse_args()
     repo_root = Path(__file__).resolve().parent
     env_python = sys.executable
     logging_dir = os.environ.get("LOGGING_DIR")
@@ -96,7 +108,7 @@ def main() -> None:
         env_python,
         "-m",
         "dojo.main_run",
-        "+_exp=run_mlebench_aira_mcts_gdm",
+        f"+_exp={args.exp_config}",
         "logger.use_wandb=False",
     ]
 

@@ -12,7 +12,7 @@ from dojo.config_dataclasses.solver.base import SolverConfig
 
 
 @dataclass
-class MCTSSolverConfig(SolverConfig):
+class PMCTSSolverConfig(SolverConfig):
     # --- Search Configuration ---
     num_children: int = field(
         default=MISSING, metadata={"description": "Number of child nodes expanded per search step"}
