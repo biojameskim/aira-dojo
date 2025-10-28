@@ -65,6 +65,10 @@ def uct_value(
     return norm_q + uct_c * exploration
 
 
+class TimeBudgetExceededError(RuntimeError):
+    """Raised when the solver exhausts its global time budget."""
+
+
 class MCTSNode(Node):
     explore_count: int = 0
     node_value: float = 0
@@ -198,6 +202,36 @@ class MCTS(Solver):
     def remaining_steps(self):
         return self.cfg.step_limit - self.state.current_step
 
+    def _remaining_time_budget(self) -> float:
+        elapsed = 0.0
+        if getattr(self, "_current_step_start", None) is not None:
+            elapsed = max(0.0, time.monotonic() - self._current_step_start)
+        return max(0.0, self.cfg.time_limit_secs - (self.state.running_time + elapsed))
+
+    def _run_task_step_with_budget(self, task, state, code):
+        remaining_time = self._remaining_time_budget()
+        if remaining_time <= 0:
+            raise TimeBudgetExceededError("No remaining time budget available.")
+
+        interpreter = None
+        if isinstance(state, dict):
+            interpreter = state.get("solver_interpreter")
+
+        original_timeout = None
+        if interpreter is not None and hasattr(interpreter, "timeout"):
+            original_timeout = interpreter.timeout
+            capped_timeout = max(1, int(remaining_time))
+            if original_timeout is None:
+                interpreter.timeout = capped_timeout
+            else:
+                interpreter.timeout = min(original_timeout, capped_timeout)
+
+        try:
+            return task.step_task(state, code)
+        finally:
+            if interpreter is not None and hasattr(interpreter, "timeout"):
+                interpreter.timeout = original_timeout
+
     def __call__(self, task, state):
         """
         Run the MCTS solver for a specified number of iterations.
@@ -217,17 +251,31 @@ class MCTS(Solver):
         # Create a blank root node to start.
         self.create_root_node()
 
+        self._current_step_start: Optional[float] = None
+        self._time_budget_exhausted = False
+
         # Run the search
         while self.state.current_step <= self.cfg.step_limit:
-            start_time = time.monotonic()
+            remaining_time = self.cfg.time_limit_secs - self.state.running_time
+            if remaining_time <= 0:
+                self.logger.info("Maximum runtime reached before starting next step, stopping search")
+                break
+
+            self._current_step_start = time.monotonic()
             state = self.step(task, state)
-            self.state.running_time += time.monotonic() - start_time
+            step_elapsed = time.monotonic() - self._current_step_start
+            self.state.running_time += step_elapsed
+            self._current_step_start = None
             self.logger.info(
                 f"Step {self.state.current_step}: Time taken for step: {self.state.running_time:.3f} seconds"
             )
 
             self.logger.info(f"Step {self.state.current_step}: Saving checkpoint")
             self.save_checkpoint()
+
+            if self._time_budget_exhausted:
+                self.logger.info("Maximum runtime reached during step, stopping search")
+                break
 
             if self.state.running_time >= self.cfg.time_limit_secs:
                 self.logger.info("Maximum runtime reached, stopping search")
@@ -492,7 +540,18 @@ class MCTS(Solver):
 
             # Evaluate the code
             self.logger.debug(f"Step {self.state.current_step}: Executing generated code")
-            state, eval_result = task.step_task(state, extract_code(child_node.code))
+            if self._remaining_time_budget() <= 0:
+                self.logger.info("Time budget exhausted before evaluating child node, stopping expansion")
+                self._time_budget_exhausted = True
+                break
+            try:
+                state, eval_result = self._run_task_step_with_budget(
+                    task, state, extract_code(child_node.code)
+                )
+            except TimeBudgetExceededError:
+                self.logger.info("Time budget exhausted during child evaluation, stopping expansion")
+                self._time_budget_exhausted = True
+                break
             self.parse_eval_result(node=child_node, eval_result=eval_result)
 
             # Add the child to the journal
@@ -516,6 +575,8 @@ class MCTS(Solver):
             if self.state.current_step > self.cfg.step_limit:
                 self.logger.info(f"Step limit reached: {self.state.current_step} steps")
                 break
+            if self._time_budget_exhausted:
+                break
 
         return state
 
@@ -529,7 +590,18 @@ class MCTS(Solver):
         # or until time runs out, whichever comes first
         for _ in range(debug_depth):
             buggy_node = self._debug(buggy_node)
-            state, eval_result = task.step_task(state, extract_code(buggy_node.code))
+            if self._remaining_time_budget() <= 0:
+                self.logger.info("Time budget exhausted before debugging evaluation, stopping debug cycle")
+                self._time_budget_exhausted = True
+                break
+            try:
+                state, eval_result = self._run_task_step_with_budget(
+                    task, state, extract_code(buggy_node.code)
+                )
+            except TimeBudgetExceededError:
+                self.logger.info("Time budget exhausted during debugging evaluation, stopping debug cycle")
+                self._time_budget_exhausted = True
+                break
             self.parse_eval_result(node=buggy_node, eval_result=eval_result)
             self.journal.append(buggy_node)
             self.log_journal()
