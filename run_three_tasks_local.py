@@ -17,6 +17,7 @@ import sys
 import time
 from pathlib import Path
 
+import yaml
 # Tasks pulled from src/dojo/configs/benchmark/mlebench/three_tasks.yaml
 DEFAULT_TASKS = [
     "aptos2019-blindness-detection",
@@ -42,7 +43,7 @@ def _load_json(path: Path) -> dict | None:
         return None
 
 
-def _get_run_info(config_paths: set[Path], task: str, seed: int):
+def _get_run_info(config_paths: set[Path], task: str, seed: int, git_issue_id: str | None = None):
     matches: list[tuple[int, Path, dict, dict | None, bool]] = []
     for path in config_paths:
         data = _load_json(path)
@@ -51,6 +52,8 @@ def _get_run_info(config_paths: set[Path], task: str, seed: int):
         if data.get("task", {}).get("name") != task:
             continue
         if data.get("metadata", {}).get("seed") != seed:
+            continue
+        if git_issue_id and data.get("metadata", {}).get("git_issue_id") != git_issue_id:
             continue
 
         step_limit = data.get("solver", {}).get("step_limit")
@@ -68,7 +71,14 @@ def _get_run_info(config_paths: set[Path], task: str, seed: int):
     return cfg_path, cfg_data, state_data, has_summary
 
 
-def _wait_for_run(base_dir: Path, known: set[Path], task: str, seed: int, timeout: float = 30.0):
+def _wait_for_run(
+    base_dir: Path,
+    known: set[Path],
+    task: str,
+    seed: int,
+    git_issue_id: str | None = None,
+    timeout: float = 30.0,
+):
     deadline = time.time() + timeout
     while time.time() < deadline:
         current = _list_config_paths(base_dir)
@@ -77,6 +87,8 @@ def _wait_for_run(base_dir: Path, known: set[Path], task: str, seed: int, timeou
             if not data:
                 continue
             if data.get("task", {}).get("name") == task and data.get("metadata", {}).get("seed") == seed:
+                if git_issue_id and data.get("metadata", {}).get("git_issue_id") != git_issue_id:
+                    continue
                 known.add(path)
                 return path, data
         time.sleep(1)
@@ -106,12 +118,53 @@ def _parse_args() -> argparse.Namespace:
         default=DEFAULT_SEEDS,
         help="List of integer seeds to iterate over (e.g., --seeds 1 3 5).",
     )
+    parser.add_argument(
+        "--git-issue-id",
+        default=None,
+        help="Optional metadata.git_issue_id filter; when set, only runs with this ID count as existing.",
+    )
     return parser.parse_args()
+
+
+def _infer_git_issue_id(exp_name: str, repo_root: Path) -> str | None:
+    exp_path = repo_root / "src" / "dojo" / "configs" / "_exp" / f"{exp_name}.yaml"
+    if not exp_path.exists():
+        return None
+    try:
+        data = yaml.safe_load(exp_path.read_text())
+    except Exception:
+        return None
+    metadata = data.get("metadata") if isinstance(data, dict) else None
+    git_issue_id = metadata.get("git_issue_id") if isinstance(metadata, dict) else None
+    return git_issue_id
+
+
+def _load_env(repo_root: Path) -> None:
+    if os.environ.get("LOGGING_DIR"):
+        return
+    env_path = repo_root / ".env"
+    if not env_path.exists():
+        return
+    try:
+        for raw_line in env_path.read_text().splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip()
+            if value.startswith(("'", '"')) and value.endswith(("'", '"')):
+                value = value[1:-1]
+            os.environ.setdefault(key, value)
+    except Exception:
+        # Silent failure; missing LOGGING_DIR will be handled later
+        pass
 
 
 def main() -> None:
     args = _parse_args()
     repo_root = Path(__file__).resolve().parent
+    _load_env(repo_root)
     env_python = sys.executable
     logging_dir = os.environ.get("LOGGING_DIR")
     if not logging_dir:
@@ -119,6 +172,8 @@ def main() -> None:
     logs_base = Path(logging_dir) / "aira-dojo"
     config_paths = _list_config_paths(logs_base)
     known_configs = set(config_paths)
+
+    git_issue_id = args.git_issue_id or _infer_git_issue_id(args.exp_config, repo_root)
 
     base_cmd = [
         env_python,
@@ -135,7 +190,7 @@ def main() -> None:
             # Refresh the set of known configs to capture runs created outside this script
             config_paths |= _list_config_paths(logs_base)
 
-            existing_info = _get_run_info(config_paths, task, seed)
+            existing_info = _get_run_info(config_paths, task, seed, git_issue_id=git_issue_id)
             existing_run_id: str | None = None
             existing_path: Path | None = None
             existing_step_limit: int | None = None
@@ -189,11 +244,17 @@ def main() -> None:
             # Update the config cache and wait for the run metadata (only required for brand new runs)
             config_paths |= _list_config_paths(logs_base)
             if existing_info is None:
-                config_path, _ = _wait_for_run(logs_base, known_configs, task, seed)
+                config_path, _ = _wait_for_run(
+                    logs_base,
+                    known_configs,
+                    task,
+                    seed,
+                    git_issue_id=git_issue_id,
+                )
                 if config_path:
                     config_paths.add(config_path)
 
-            post_info = _get_run_info(config_paths, task, seed)
+            post_info = _get_run_info(config_paths, task, seed, git_issue_id=git_issue_id)
             if post_info:
                 cfg_path, cfg_data, state_data, has_summary = post_info
                 run_id = cfg_data.get("id", "<unknown>")
