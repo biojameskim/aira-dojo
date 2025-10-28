@@ -154,7 +154,7 @@ python run_three_tasks_local.py \
 ```
 ### Defaults
 - `run_three_tasks_local.py` is a thin wrapper that iterates over the three canonical MLE-Bench tasks (`aptos2019-blindness-detection`, `tabular-playground-series-may-2022`, `mlsp-2013-birds`) and seeds `[1, 2, 3]`, launching `python -m dojo.main_run ...` for each combination.
-- Pass `--exp-config <name>` to swap experiments (defaults to `run_mlebench_aira_mcts_gdm`). The LLM as judge implementation is `run_mlebench_aira_llm_mcts`.
+- Pass `--exp-config <name>` to swap experiments (defaults to `run_mlebench_aira_mcts_gdm`). The LLM as judge implementation is `run_mlebench_aira_llm_mcts`. UPDATE: I'm running the pmcts under `run_mlebench_aira_pmcts`
 
 You can also configure specific tasks/seeds like so:
 ```
