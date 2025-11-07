@@ -229,3 +229,5 @@ __marimo__/shared/mle-bench/
 shared/mle-bench/
 shared/sif/
 shared/tmp/
+
+outputs/*

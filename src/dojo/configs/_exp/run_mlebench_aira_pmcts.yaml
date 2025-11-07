@@ -2,11 +2,12 @@
 defaults:
   - override /task: mlebench/_default
   - override /interpreter: jupyter
-  - override /solver: mlebench/mcts
+  - override /solver: mlebench/p_mcts
   - override /solver/client@solver.operators.analyze.llm.client: gdm
   - override /solver/client@solver.operators.debug.llm.client: gdm
   - override /solver/client@solver.operators.draft.llm.client: gdm
   - override /solver/client@solver.operators.improve.llm.client: gdm
+  - override /solver/client@solver.operators.judge.llm.client: gdm
 
 metadata:
-  git_issue_id: AIRA_C_025_mcts_baseline
+  git_issue_id: AIRA_C_025_pmcts

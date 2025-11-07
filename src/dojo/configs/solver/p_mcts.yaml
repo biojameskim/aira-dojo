@@ -29,7 +29,7 @@ use_complexity: ??? # Whether to consider complexity differences in prompts - on
 
 # --- Environment Configuration ---
 execution_timeout: 14400 # Specifies the timeout for the interpreter (decreased from 32400)
-time_limit_secs: 18000 # 5 hours
+time_limit_secs: 36000 # 10 hours
 # List of Python packages available for execution
 available_packages:
   - numpy                  # Numerical computing library
