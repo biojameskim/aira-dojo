@@ -127,7 +127,14 @@ def generate(cfg, jou: Journal, out_path: Path):
     try:
         tree_graph_str = json.dumps(cfg_to_tree_struct(cfg, jou))
         html = generate_html(tree_graph_str)
+        # Ensure parent directory exists before writing
+        Path(out_path).parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w") as f:
             f.write(html)
     except Exception as e:
-        print(f"Couldn't generate visualisation due to {e}")
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        logger.error(f"Couldn't generate visualisation due to {e}")
+        logger.error(traceback.format_exc())
+        raise  # Re-raise the exception so the caller knows it failed

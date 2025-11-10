@@ -57,8 +57,12 @@ class SearchExporter:
             tree_path = Path(tree_path)  # ensure Path object
             # tree_export is assumed to be some module that can generate
             # an HTML tree visualization
-            tree_export.generate(self.cfg, self.journal, str(tree_path))
-            tree_path_str = str(tree_path.absolute())
+            try:
+                tree_export.generate(self.cfg, self.journal, str(tree_path))
+                tree_path_str = str(tree_path.absolute())
+            except Exception as e:
+                logger.warning(f"Failed to generate tree visualization: {e}")
+                tree_path_str = None  # Mark as failed so we don't try to use it later
         else:
             tree_path_str = None
 
@@ -70,6 +74,8 @@ class SearchExporter:
 
         if output_file:
             output_file = Path(output_file)
+            # Ensure parent directory exists before writing
+            output_file.parent.mkdir(parents=True, exist_ok=True)
             with output_file.open("w", encoding="utf-8") as f:
                 json.dump(search_data, f, indent=2)
             logger.info(f"Exported search results to {output_file.resolve()}")
@@ -87,8 +93,14 @@ def export_search_results(cfg: DictConfig, journal: Journal, logger: CollectiveL
         search_exporter.gather_and_export_search_results(default_tree_path, default_data_path)
         logger.info(f"Visualisation exported to {default_data_path} and {default_tree_path}.", LogEvent.SOLVER)
         logger.log_file(Path(default_data_path).absolute())
-        logger.log_file(Path(default_tree_path).absolute())
-        logger.log({"tree_vis": wandb.Html(open(Path(default_tree_path).absolute()))}, LogEvent.SOLVER)
+
+        # Only log the HTML file if it was actually created
+        tree_path_obj = Path(default_tree_path).absolute()
+        if tree_path_obj.exists():
+            logger.log_file(tree_path_obj)
+            logger.log({"tree_vis": wandb.Html(open(tree_path_obj))}, LogEvent.SOLVER)
+        else:
+            logger.warning(f"Tree visualization HTML file was not created at {tree_path_obj}", LogEvent.SOLVER)
 
 
 def test_export_and_reconstruct_search_data():
