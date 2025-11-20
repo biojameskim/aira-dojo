@@ -1,0 +1,13 @@
+# @package _global_
+defaults:
+  - override /interpreter: jupyter
+  - override /solver: mlebench/sa_ucb
+  - override /solver/client@solver.operators.analyze.llm.client: gdm
+  - override /solver/client@solver.operators.debug.llm.client: gdm
+  - override /solver/client@solver.operators.draft.llm.client: gdm
+  - override /solver/client@solver.operators.improve.llm.client: gdm
+  - override /solver/client@solver.operators.promise_scorer.llm.client: gdm
+  - override /solver/client@solver.operators.novelty_scorer.llm.client: gdm
+
+metadata:
+  git_issue_id: AIRA_SA_UCB_001
