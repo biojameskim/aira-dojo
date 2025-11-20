@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - override /task: mlebench/_default
+  - override /interpreter: jupyter
+  - override /solver: mlebench/sa_ucb
+  - override /solver/client@solver.operators.analyze.llm.client: gdm
+  - override /solver/client@solver.operators.debug.llm.client: gdm
+  - override /solver/client@solver.operators.draft.llm.client: gdm
+  - override /solver/client@solver.operators.improve.llm.client: gdm
+  - override /solver/client@solver.operators.promise_scorer.llm.client: promise_novelty
+  - override /solver/client@solver.operators.novelty_scorer.llm.client: promise_novelty
+
+metadata:
+  git_issue_id: AIRA_SA_UCB_5h_2.5-flash_2folds_2500steps
